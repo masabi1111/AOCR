@@ -1,0 +1,148 @@
+async function processFiles(files) {
+    const resultsDiv = document.getElementById('results');
+    const loadingDiv = document.getElementById('loading');
+    resultsDiv.innerHTML = '';
+    loadingDiv.style.display = 'block';
+    const progressBarContainer = document.getElementById('progressBarContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    let showProgress = files.length > 1;
+    if (showProgress) {
+        progressBarContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+    } else {
+        progressBarContainer.style.display = 'none';
+    }
+
+    // ترتيب الملفات حسب الاسم لضمان الترتيب الصحيح
+    files = files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (showProgress) {
+            let percent = Math.round(((i) / files.length) * 100);
+            progressBar.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+        }
+        if (!file.type.startsWith('image/')) continue;
+        const imgURL = URL.createObjectURL(file);
+        const resultBlock = document.createElement('div');
+        resultBlock.className = 'result-block';
+        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><strong>النص المستخرج:</strong><br><pre style="background:#fff;border-radius:6px;padding:10px;white-space:pre-wrap;word-break:break-word;">جاري المعالجة...</pre>`;
+        resultsDiv.appendChild(resultBlock);
+
+        // معالجة الصورة عبر Canvas
+        const image = await new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.src = imgURL;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+
+        // تحويل إلى أبيض وأسود وزيادة التباين
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+            const contrast = 1.5;
+            let val = contrast * (avg - 128) + 128;
+            val = val > 255 ? 255 : val < 0 ? 0 : val;
+            const bw = val > 180 ? 255 : 0;
+            data[i] = data[i+1] = data[i+2] = bw;
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        // تطبيق فلتر وضوح الحواف (sharpen)
+        const sharpen = (ctx, w, h) => {
+            const weights = [
+                0, -1,  0,
+               -1,  5, -1,
+                0, -1,  0
+            ];
+            const side = 3;
+            const halfSide = Math.floor(side / 2);
+            const src = ctx.getImageData(0, 0, w, h);
+            const sw = src.width;
+            const sh = src.height;
+            const srcData = src.data;
+            const output = ctx.createImageData(sw, sh);
+            const dstData = output.data;
+
+            for (let y = 0; y < sh; y++) {
+                for (let x = 0; x < sw; x++) {
+                    let r = 0, g = 0, b = 0;
+                    for (let cy = 0; cy < side; cy++) {
+                        for (let cx = 0; cx < side; cx++) {
+                            const scy = y + cy - halfSide;
+                            const scx = x + cx - halfSide;
+                            if (scy >= 0 && scy < sh && scx >= 0 && scx < sw) {
+                                const srcOffset = (scy * sw + scx) * 4;
+                                const wt = weights[cy * side + cx];
+                                r += srcData[srcOffset] * wt;
+                                g += srcData[srcOffset + 1] * wt;
+                                b += srcData[srcOffset + 2] * wt;
+                            }
+                        }
+                    }
+                    const dstOffset = (y * sw + x) * 4;
+                    dstData[dstOffset]     = Math.min(Math.max(r, 0), 255);
+                    dstData[dstOffset + 1] = Math.min(Math.max(g, 0), 255);
+                    dstData[dstOffset + 2] = Math.min(Math.max(b, 0), 255);
+                    dstData[dstOffset + 3] = srcData[dstOffset + 3];
+                }
+            }
+            ctx.putImageData(output, 0, 0);
+        };
+        sharpen(ctx, canvas.width, canvas.height);
+
+        // استخراج الصورة المحسنة كـ dataURL
+        const processedURL = canvas.toDataURL();
+
+        try {
+            const { data: { text } } = await Tesseract.recognize(
+                processedURL,
+                'ara+eng',
+                {
+                    logger: m => { /* يمكنك عرض تقدم المعالجة هنا إذا رغبت */ },
+                    tessedit_preserve_interword_spaces: 1,
+                }
+            );
+
+            let cleanText = text
+                .replace(/صلى الله عليه وسلم|صلّى الله عليه وسلّم|صلى الله عليه و سلم/g, "ﷺ")
+                .replace(/جل جلاله|جلّ جلاله/g, "ﷻ")
+                .replace(/رضي الله عنه/g, "﵋")
+                .replace(/عليه السلام/g, "ؑ");
+
+            const pre = resultBlock.querySelector('pre');
+            pre.textContent = cleanText.trim();
+            if (/[\u0600-\u06FF]/.test(cleanText)) {
+                pre.style.direction = 'rtl';
+                pre.style.textAlign = 'right';
+            } else {
+                pre.style.direction = 'ltr';
+                pre.style.textAlign = 'left';
+            }
+        } catch (err) {
+            resultBlock.querySelector('pre').textContent = 'حدث خطأ أثناء المعالجة.';
+        }
+    }
+    if (showProgress) {
+        progressBar.style.width = '100%';
+        progressText.textContent = '100%';
+        setTimeout(() => { progressBarContainer.style.display = 'none'; }, 1200);
+    }
+    loadingDiv.style.display = 'none';
+}
+
+document.getElementById('imageInput').addEventListener('change', function (e) {
+    processFiles(Array.from(e.target.files));
+});
+
+document.getElementById('folderInput').addEventListener('change', function (e) {
+    processFiles(Array.from(e.target.files));
+});
