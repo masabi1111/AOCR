@@ -31,11 +31,41 @@ async function processFiles(files) {
         const saveButtonLabel = 'حفظ التعديلات';
         const resultBlock = document.createElement('div');
         resultBlock.className = 'result-block';
-        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="action-button copy-button" disabled>${copyButtonDefaultLabel}</button><button type="button" class="action-button edit-button" disabled>${editButtonDefaultLabel}</button></div></div><pre class="extracted-text">جاري المعالجة...</pre>`;
+        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="action-button copy-button" disabled>${copyButtonDefaultLabel}</button><div class="font-controls"><button type="button" class="action-button font-button font-decrease" disabled>-</button><button type="button" class="action-button font-button font-increase" disabled>+</button></div><button type="button" class="action-button edit-button" disabled>${editButtonDefaultLabel}</button></div></div><pre class="extracted-text">جاري المعالجة...</pre>`;
         resultsDiv.appendChild(resultBlock);
         const copyButton = resultBlock.querySelector('.copy-button');
         const editButton = resultBlock.querySelector('.edit-button');
+        const decreaseFontButton = resultBlock.querySelector('.font-decrease');
+        const increaseFontButton = resultBlock.querySelector('.font-increase');
         const textElement = resultBlock.querySelector('.extracted-text');
+        const MIN_FONT_SIZE = 12;
+        const MAX_FONT_SIZE = 32;
+        let currentFontSize = parseFloat(window.getComputedStyle(textElement).fontSize) || 16;
+
+        const applyFontSize = () => {
+            textElement.style.fontSize = `${currentFontSize}px`;
+        };
+
+        const updateFontButtons = () => {
+            decreaseFontButton.disabled = currentFontSize <= MIN_FONT_SIZE;
+            increaseFontButton.disabled = currentFontSize >= MAX_FONT_SIZE;
+        };
+
+        applyFontSize();
+
+        decreaseFontButton.addEventListener('click', () => {
+            if (currentFontSize <= MIN_FONT_SIZE) return;
+            currentFontSize = Math.max(currentFontSize - 2, MIN_FONT_SIZE);
+            applyFontSize();
+            updateFontButtons();
+        });
+
+        increaseFontButton.addEventListener('click', () => {
+            if (currentFontSize >= MAX_FONT_SIZE) return;
+            currentFontSize = Math.min(currentFontSize + 2, MAX_FONT_SIZE);
+            applyFontSize();
+            updateFontButtons();
+        });
         copyButton.addEventListener('click', async () => {
             const textToCopy = textElement.textContent;
             const originalText = copyButtonDefaultLabel;
@@ -200,6 +230,9 @@ async function processFiles(files) {
             copyButton.textContent = copyButtonDefaultLabel;
             editButton.disabled = false;
             editButton.textContent = editButtonDefaultLabel;
+            decreaseFontButton.disabled = false;
+            increaseFontButton.disabled = false;
+            updateFontButtons();
         } catch (err) {
             textElement.textContent = 'حدث خطأ أثناء المعالجة.';
             isEditing = false;
@@ -210,6 +243,8 @@ async function processFiles(files) {
             copyButton.textContent = 'تعذّر المعالجة';
             editButton.disabled = true;
             editButton.textContent = editButtonDefaultLabel;
+            decreaseFontButton.disabled = true;
+            increaseFontButton.disabled = true;
         }
     }
     if (showProgress) {
