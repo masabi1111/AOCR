@@ -6,9 +6,24 @@ const GLOBAL_COPY_ERROR_LABEL = 'تعذّر النسخ';
 const GLOBAL_COPY_EMPTY_LABEL = 'لا يوجد نص لنسخه';
 
 const copyAllButton = document.getElementById('copyAllButton');
+const scrollTopButton = document.getElementById('scrollTopButton');
 let isGlobalCopyButtonLocked = false;
 if (copyAllButton) {
     copyAllButton.textContent = GLOBAL_COPY_DEFAULT_LABEL;
+}
+if (scrollTopButton) {
+    const toggleScrollButton = () => {
+        if (window.scrollY > 200) {
+            scrollTopButton.classList.add('visible');
+        } else {
+            scrollTopButton.classList.remove('visible');
+        }
+    };
+    window.addEventListener('scroll', toggleScrollButton);
+    window.addEventListener('load', toggleScrollButton);
+    scrollTopButton.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 }
 
 async function copyToClipboard(text) {
