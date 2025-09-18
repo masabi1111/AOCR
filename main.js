@@ -26,10 +26,44 @@ async function processFiles(files) {
         }
         if (!file.type.startsWith('image/')) continue;
         const imgURL = URL.createObjectURL(file);
+        const copyButtonDefaultLabel = 'نسخ النص';
         const resultBlock = document.createElement('div');
         resultBlock.className = 'result-block';
-        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><strong>النص المستخرج:</strong><br><pre style="background:#fff;border-radius:6px;padding:10px;white-space:pre-wrap;word-break:break-word;">جاري المعالجة...</pre>`;
+        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><strong>النص المستخرج:</strong><br><div class="copy-controls"><button type="button" class="copy-button" disabled>${copyButtonDefaultLabel}</button></div><pre style="background:#fff;border-radius:6px;padding:10px;white-space:pre-wrap;word-break:break-word;">جاري المعالجة...</pre>`;
         resultsDiv.appendChild(resultBlock);
+        const copyButton = resultBlock.querySelector('.copy-button');
+        copyButton.addEventListener('click', async () => {
+            const pre = resultBlock.querySelector('pre');
+            const textToCopy = pre.textContent;
+            const originalText = copyButtonDefaultLabel;
+            const successText = 'تم النسخ!';
+            const errorText = 'تعذّر النسخ';
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(textToCopy);
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = textToCopy;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                }
+                copyButton.textContent = successText;
+            } catch (copyError) {
+                console.error('خطأ أثناء نسخ النص:', copyError);
+                copyButton.textContent = errorText;
+            } finally {
+                copyButton.disabled = true;
+                setTimeout(() => {
+                    copyButton.textContent = originalText;
+                    copyButton.disabled = false;
+                }, 1500);
+            }
+        });
 
         // معالجة الصورة عبر Canvas
         const image = await new Promise((resolve) => {
@@ -127,8 +161,12 @@ async function processFiles(files) {
                 pre.style.direction = 'ltr';
                 pre.style.textAlign = 'left';
             }
+            copyButton.disabled = false;
+            copyButton.textContent = copyButtonDefaultLabel;
         } catch (err) {
             resultBlock.querySelector('pre').textContent = 'حدث خطأ أثناء المعالجة.';
+            copyButton.disabled = true;
+            copyButton.textContent = 'تعذّر المعالجة';
         }
     }
     if (showProgress) {
