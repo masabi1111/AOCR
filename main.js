@@ -29,14 +29,16 @@ async function processFiles(files) {
         const copyButtonDefaultLabel = 'نسخ النص';
         const editButtonDefaultLabel = 'تحرير النص';
         const saveButtonLabel = 'حفظ التعديلات';
+        const deleteButtonLabel = 'حذف الصورة والنص';
         const resultBlock = document.createElement('div');
         resultBlock.className = 'result-block';
-        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="action-button copy-button" disabled>${copyButtonDefaultLabel}</button><div class="font-controls"><button type="button" class="action-button font-button font-decrease" disabled>-</button><button type="button" class="action-button font-button font-increase" disabled>+</button></div><button type="button" class="action-button edit-button" disabled>${editButtonDefaultLabel}</button></div></div><pre class="extracted-text">جاري المعالجة...</pre>`;
+        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="action-button copy-button" disabled>${copyButtonDefaultLabel}</button><div class="font-controls"><button type="button" class="action-button font-button font-decrease" disabled>-</button><button type="button" class="action-button font-button font-increase" disabled>+</button></div><button type="button" class="action-button edit-button" disabled>${editButtonDefaultLabel}</button><button type="button" class="action-button delete-button">${deleteButtonLabel}</button></div></div><pre class="extracted-text">جاري المعالجة...</pre>`;
         resultsDiv.appendChild(resultBlock);
         const copyButton = resultBlock.querySelector('.copy-button');
         const editButton = resultBlock.querySelector('.edit-button');
         const decreaseFontButton = resultBlock.querySelector('.font-decrease');
         const increaseFontButton = resultBlock.querySelector('.font-increase');
+        const deleteButton = resultBlock.querySelector('.delete-button');
         const textElement = resultBlock.querySelector('.extracted-text');
         const MIN_FONT_SIZE = 12;
         const MAX_FONT_SIZE = 32;
@@ -65,6 +67,15 @@ async function processFiles(files) {
             currentFontSize = Math.min(currentFontSize + 2, MAX_FONT_SIZE);
             applyFontSize();
             updateFontButtons();
+        });
+
+        deleteButton.addEventListener('click', () => {
+            const confirmation = confirm('هل أنت متأكد من حذف هذه الصورة والنص؟');
+            if (!confirmation) {
+                return;
+            }
+            URL.revokeObjectURL(imgURL);
+            resultBlock.remove();
         });
         copyButton.addEventListener('click', async () => {
             const textToCopy = textElement.textContent;
