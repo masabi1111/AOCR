@@ -1,8 +1,79 @@
+const PROCESSING_TEXT = 'جاري المعالجة...';
+const ERROR_TEXT = 'حدث خطأ أثناء المعالجة.';
+const GLOBAL_COPY_DEFAULT_LABEL = 'نسخ كل النصوص';
+const GLOBAL_COPY_SUCCESS_LABEL = 'تم نسخ كل النصوص!';
+const GLOBAL_COPY_ERROR_LABEL = 'تعذّر النسخ';
+const GLOBAL_COPY_EMPTY_LABEL = 'لا يوجد نص لنسخه';
+
+const copyAllButton = document.getElementById('copyAllButton');
+let isGlobalCopyButtonLocked = false;
+if (copyAllButton) {
+    copyAllButton.textContent = GLOBAL_COPY_DEFAULT_LABEL;
+}
+
+async function copyToClipboard(text) {
+    if (!text) {
+        return false;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (error) {
+            console.error('خطأ أثناء نسخ النص:', error);
+            return false;
+        }
+    }
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return successful;
+    } catch (fallbackError) {
+        console.error('خطأ أثناء نسخ النص (الطريقة البديلة):', fallbackError);
+        return false;
+    }
+}
+
+function getCopyableTexts() {
+    return Array.from(document.querySelectorAll('.extracted-text'))
+        .map(element => element.textContent.trim())
+        .filter(text => text && text !== PROCESSING_TEXT && text !== ERROR_TEXT);
+}
+
+function resetGlobalCopyButtonLabel() {
+    if (!copyAllButton) {
+        return;
+    }
+    copyAllButton.textContent = GLOBAL_COPY_DEFAULT_LABEL;
+}
+
+function updateGlobalCopyButton() {
+    if (!copyAllButton) {
+        return;
+    }
+    const hasCopyableTexts = getCopyableTexts().length > 0;
+    copyAllButton.disabled = !hasCopyableTexts || isGlobalCopyButtonLocked;
+    if (!hasCopyableTexts) {
+        resetGlobalCopyButtonLabel();
+    }
+}
+
+updateGlobalCopyButton();
+
 async function processFiles(files) {
     const resultsDiv = document.getElementById('results');
     const loadingDiv = document.getElementById('loading');
     resultsDiv.innerHTML = '';
     loadingDiv.style.display = 'block';
+    resetGlobalCopyButtonLabel();
+    updateGlobalCopyButton();
     const progressBarContainer = document.getElementById('progressBarContainer');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
@@ -32,7 +103,7 @@ async function processFiles(files) {
         const deleteButtonLabel = 'حذف الصورة والنص';
         const resultBlock = document.createElement('div');
         resultBlock.className = 'result-block';
-        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="action-button copy-button" disabled>${copyButtonDefaultLabel}</button><div class="font-controls"><button type="button" class="action-button font-button font-decrease" disabled>-</button><button type="button" class="action-button font-button font-increase" disabled>+</button></div><button type="button" class="action-button edit-button" disabled>${editButtonDefaultLabel}</button><button type="button" class="action-button delete-button">${deleteButtonLabel}</button></div></div><pre class="extracted-text">جاري المعالجة...</pre>`;
+        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="action-button copy-button" disabled>${copyButtonDefaultLabel}</button><div class="font-controls"><button type="button" class="action-button font-button font-decrease" disabled>-</button><button type="button" class="action-button font-button font-increase" disabled>+</button></div><button type="button" class="action-button edit-button" disabled>${editButtonDefaultLabel}</button><button type="button" class="action-button delete-button">${deleteButtonLabel}</button></div></div><pre class="extracted-text">${PROCESSING_TEXT}</pre>`;
         resultsDiv.appendChild(resultBlock);
         const copyButton = resultBlock.querySelector('.copy-button');
         const editButton = resultBlock.querySelector('.edit-button');
@@ -40,6 +111,7 @@ async function processFiles(files) {
         const increaseFontButton = resultBlock.querySelector('.font-increase');
         const deleteButton = resultBlock.querySelector('.delete-button');
         const textElement = resultBlock.querySelector('.extracted-text');
+        textElement.addEventListener('input', updateGlobalCopyButton);
         const MIN_FONT_SIZE = 12;
         const MAX_FONT_SIZE = 32;
         let currentFontSize = parseFloat(window.getComputedStyle(textElement).fontSize) || 16;
@@ -76,37 +148,20 @@ async function processFiles(files) {
             }
             URL.revokeObjectURL(imgURL);
             resultBlock.remove();
+            updateGlobalCopyButton();
         });
         copyButton.addEventListener('click', async () => {
             const textToCopy = textElement.textContent;
             const originalText = copyButtonDefaultLabel;
             const successText = 'تم النسخ!';
             const errorText = 'تعذّر النسخ';
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(textToCopy);
-                } else {
-                    const textarea = document.createElement('textarea');
-                    textarea.value = textToCopy;
-                    textarea.style.position = 'fixed';
-                    textarea.style.opacity = '0';
-                    document.body.appendChild(textarea);
-                    textarea.focus();
-                    textarea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textarea);
-                }
-                copyButton.textContent = successText;
-            } catch (copyError) {
-                console.error('خطأ أثناء نسخ النص:', copyError);
-                copyButton.textContent = errorText;
-            } finally {
-                copyButton.disabled = true;
-                setTimeout(() => {
-                    copyButton.textContent = originalText;
-                    copyButton.disabled = false;
-                }, 1500);
-            }
+            copyButton.disabled = true;
+            const didCopy = await copyToClipboard(textToCopy);
+            copyButton.textContent = didCopy ? successText : errorText;
+            setTimeout(() => {
+                copyButton.textContent = originalText;
+                copyButton.disabled = false;
+            }, 1500);
         });
 
         let isEditing = false;
@@ -225,7 +280,8 @@ async function processFiles(files) {
                 .replace(/رضي الله عنه/g, "﵋")
                 .replace(/عليه السلام/g, "ؑ");
 
-            textElement.textContent = cleanText.trim();
+            const trimmedText = cleanText.trim();
+            textElement.textContent = trimmedText;
             if (/[\u0600-\u06FF]/.test(cleanText)) {
                 textElement.style.direction = 'rtl';
                 textElement.style.textAlign = 'right';
@@ -244,8 +300,9 @@ async function processFiles(files) {
             decreaseFontButton.disabled = false;
             increaseFontButton.disabled = false;
             updateFontButtons();
+            updateGlobalCopyButton();
         } catch (err) {
-            textElement.textContent = 'حدث خطأ أثناء المعالجة.';
+            textElement.textContent = ERROR_TEXT;
             isEditing = false;
             textElement.contentEditable = 'false';
             textElement.classList.remove('editing');
@@ -256,6 +313,7 @@ async function processFiles(files) {
             editButton.textContent = editButtonDefaultLabel;
             decreaseFontButton.disabled = true;
             increaseFontButton.disabled = true;
+            updateGlobalCopyButton();
         }
     }
     if (showProgress) {
@@ -263,7 +321,35 @@ async function processFiles(files) {
         progressText.textContent = '100%';
         setTimeout(() => { progressBarContainer.style.display = 'none'; }, 1200);
     }
+    updateGlobalCopyButton();
     loadingDiv.style.display = 'none';
+}
+
+if (copyAllButton) {
+    copyAllButton.addEventListener('click', async () => {
+        const texts = getCopyableTexts();
+        if (texts.length === 0) {
+            isGlobalCopyButtonLocked = true;
+            copyAllButton.disabled = true;
+            copyAllButton.textContent = GLOBAL_COPY_EMPTY_LABEL;
+            setTimeout(() => {
+                isGlobalCopyButtonLocked = false;
+                resetGlobalCopyButtonLabel();
+                updateGlobalCopyButton();
+            }, 1500);
+            return;
+        }
+        isGlobalCopyButtonLocked = true;
+        copyAllButton.disabled = true;
+        const combinedText = texts.join('\n\n');
+        const didCopy = await copyToClipboard(combinedText);
+        copyAllButton.textContent = didCopy ? GLOBAL_COPY_SUCCESS_LABEL : GLOBAL_COPY_ERROR_LABEL;
+        setTimeout(() => {
+            isGlobalCopyButtonLocked = false;
+            resetGlobalCopyButtonLabel();
+            updateGlobalCopyButton();
+        }, 1500);
+    });
 }
 
 document.getElementById('imageInput').addEventListener('change', function (e) {

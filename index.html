@@ -17,6 +17,8 @@
         .option-title { font-size: 18px; font-weight: 600; color: #1f2937; }
         .option-desc { font-size: 14px; color: #6b7280; }
         .results { margin-top: 32px; }
+        .global-controls { display: flex; justify-content: flex-start; margin-top: 24px; }
+        .global-controls .action-button { min-width: 160px; }
         .result-block { background: #f3f4f6; padding: 16px; border-radius: 12px; margin-bottom: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6); }
         .loading { color: #4f46e5; text-align: center; margin-top: 16px; font-weight: 500; }
         .extracted-header { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 6px; gap: 12px; }
@@ -73,6 +75,9 @@
                 <div id="progressBar" style="background:#0078d4; height:18px; border-radius:8px; width:0%; transition:width 0.3s;"></div>
             </div>
             <div id="progressText" style="text-align:center; color:#666; font-size:13px; margin-top:4px;">0%</div>
+        </div>
+        <div class="global-controls">
+            <button type="button" id="copyAllButton" class="action-button copy-button" disabled>نسخ كل النصوص</button>
         </div>
         <div id="results" class="results"></div>
     </div>
