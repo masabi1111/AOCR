@@ -21,10 +21,16 @@
         .loading { color: #4f46e5; text-align: center; margin-top: 16px; font-weight: 500; }
         .extracted-header { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 6px; gap: 12px; }
         .extracted-header strong { font-size: 16px; color: #1f2937; }
-        .copy-controls { display: flex; justify-content: center; align-items: center; }
-        .copy-button { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 600; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .copy-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(99, 102, 241, 0.3); }
-        .copy-button:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+        .copy-controls { display: flex; justify-content: flex-start; align-items: center; gap: 8px; }
+        .action-button { color: #fff; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 600; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12); }
+        .action-button:hover:not(:disabled) { transform: translateY(-1px); }
+        .action-button:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+        .copy-button { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .copy-button:hover:not(:disabled) { box-shadow: 0 6px 14px rgba(99, 102, 241, 0.3); }
+        .edit-button { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+        .edit-button:hover:not(:disabled) { box-shadow: 0 6px 14px rgba(14, 165, 233, 0.28); }
+        .extracted-text { background: #fff; border-radius: 6px; padding: 10px; white-space: pre-wrap; word-break: break-word; transition: background 0.2s ease, box-shadow 0.2s ease; }
+        .extracted-text.editing { outline: 2px solid #6366f1; background: #eef2ff; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15); }
         @media (min-width: 640px) {
             .options { flex-direction: row; }
             .option-card { flex: 1; }

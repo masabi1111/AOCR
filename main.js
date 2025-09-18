@@ -27,14 +27,17 @@ async function processFiles(files) {
         if (!file.type.startsWith('image/')) continue;
         const imgURL = URL.createObjectURL(file);
         const copyButtonDefaultLabel = 'نسخ النص';
+        const editButtonDefaultLabel = 'تحرير النص';
+        const saveButtonLabel = 'حفظ التعديلات';
         const resultBlock = document.createElement('div');
         resultBlock.className = 'result-block';
-        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="copy-button" disabled>${copyButtonDefaultLabel}</button></div></div><pre style="background:#fff;border-radius:6px;padding:10px;white-space:pre-wrap;word-break:break-word;">جاري المعالجة...</pre>`;
+        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="action-button copy-button" disabled>${copyButtonDefaultLabel}</button><button type="button" class="action-button edit-button" disabled>${editButtonDefaultLabel}</button></div></div><pre class="extracted-text">جاري المعالجة...</pre>`;
         resultsDiv.appendChild(resultBlock);
         const copyButton = resultBlock.querySelector('.copy-button');
+        const editButton = resultBlock.querySelector('.edit-button');
+        const textElement = resultBlock.querySelector('.extracted-text');
         copyButton.addEventListener('click', async () => {
-            const pre = resultBlock.querySelector('pre');
-            const textToCopy = pre.textContent;
+            const textToCopy = textElement.textContent;
             const originalText = copyButtonDefaultLabel;
             const successText = 'تم النسخ!';
             const errorText = 'تعذّر النسخ';
@@ -62,6 +65,35 @@ async function processFiles(files) {
                     copyButton.textContent = originalText;
                     copyButton.disabled = false;
                 }, 1500);
+            }
+        });
+
+        let isEditing = false;
+        editButton.addEventListener('click', () => {
+            if (!isEditing) {
+                isEditing = true;
+                textElement.contentEditable = 'true';
+                textElement.classList.add('editing');
+                editButton.textContent = saveButtonLabel;
+                textElement.focus();
+                try {
+                    const selection = window.getSelection();
+                    if (selection) {
+                        const range = document.createRange();
+                        range.selectNodeContents(textElement);
+                        range.collapse(false);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                } catch (selectionError) {
+                    console.warn('تعذر تحديد مكان المؤشر بعد تفعيل التحرير:', selectionError);
+                }
+            } else {
+                isEditing = false;
+                textElement.contentEditable = 'false';
+                textElement.classList.remove('editing');
+                textElement.blur();
+                editButton.textContent = editButtonDefaultLabel;
             }
         });
 
@@ -152,21 +184,32 @@ async function processFiles(files) {
                 .replace(/رضي الله عنه/g, "﵋")
                 .replace(/عليه السلام/g, "ؑ");
 
-            const pre = resultBlock.querySelector('pre');
-            pre.textContent = cleanText.trim();
+            textElement.textContent = cleanText.trim();
             if (/[\u0600-\u06FF]/.test(cleanText)) {
-                pre.style.direction = 'rtl';
-                pre.style.textAlign = 'right';
+                textElement.style.direction = 'rtl';
+                textElement.style.textAlign = 'right';
             } else {
-                pre.style.direction = 'ltr';
-                pre.style.textAlign = 'left';
+                textElement.style.direction = 'ltr';
+                textElement.style.textAlign = 'left';
             }
+            isEditing = false;
+            textElement.contentEditable = 'false';
+            textElement.classList.remove('editing');
+            textElement.blur();
             copyButton.disabled = false;
             copyButton.textContent = copyButtonDefaultLabel;
+            editButton.disabled = false;
+            editButton.textContent = editButtonDefaultLabel;
         } catch (err) {
-            resultBlock.querySelector('pre').textContent = 'حدث خطأ أثناء المعالجة.';
+            textElement.textContent = 'حدث خطأ أثناء المعالجة.';
+            isEditing = false;
+            textElement.contentEditable = 'false';
+            textElement.classList.remove('editing');
+            textElement.blur();
             copyButton.disabled = true;
             copyButton.textContent = 'تعذّر المعالجة';
+            editButton.disabled = true;
+            editButton.textContent = editButtonDefaultLabel;
         }
     }
     if (showProgress) {
