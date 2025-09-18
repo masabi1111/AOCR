@@ -29,7 +29,7 @@ async function processFiles(files) {
         const copyButtonDefaultLabel = 'نسخ النص';
         const resultBlock = document.createElement('div');
         resultBlock.className = 'result-block';
-        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><strong>النص المستخرج:</strong><br><div class="copy-controls"><button type="button" class="copy-button" disabled>${copyButtonDefaultLabel}</button></div><pre style="background:#fff;border-radius:6px;padding:10px;white-space:pre-wrap;word-break:break-word;">جاري المعالجة...</pre>`;
+        resultBlock.innerHTML = `<strong>الصورة:</strong><br><img src="${imgURL}" style="max-width:100%;max-height:200px;"><br><div class="extracted-header"><strong>النص المستخرج:</strong><div class="copy-controls"><button type="button" class="copy-button" disabled>${copyButtonDefaultLabel}</button></div></div><pre style="background:#fff;border-radius:6px;padding:10px;white-space:pre-wrap;word-break:break-word;">جاري المعالجة...</pre>`;
         resultsDiv.appendChild(resultBlock);
         const copyButton = resultBlock.querySelector('.copy-button');
         copyButton.addEventListener('click', async () => {
