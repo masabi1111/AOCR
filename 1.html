@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Chosen Palette: Light & Dark Palettes Inspired by Japanese Nature & Arabic Clarity -->
+    <!-- Application Structure Plan: The application is structured as an interactive brand guide. It is divided into thematic sections: a hero section to set the tone, followed by sections for color palettes, typography, and UI components. This structure allows the client to easily visualize each element of the brand identity in a live, interactive context. The primary interaction is the light/dark mode toggle, which demonstrates the brand's versatility and responsiveness to user preferences. -->
+    <!-- Visualization & Content Choices: Instead of data charts, this application uses visual elements to represent the brand identity. Goal: Inform/Demonstrate. Method: Color swatches are represented by styled divs. Typography is showcased using styled HTML text elements. UI components like buttons and cards are built with HTML/Tailwind to provide a tangible feel. Interaction: The main interaction is the theme toggle, which dynamically updates the entire page's styling. This approach directly translates the static brand report into a dynamic and explorable web experience. Library/Method: Vanilla JS for theme switching, Tailwind CSS for styling. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <title>الهوية البصرية | Nihongo Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans:wght@400;700&family=Yusei+Magic&family=Zen+Kurenaido&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Naskh Arabic', serif; }
+        .font-jp { font-family: 'Noto Sans JP', sans-serif; }
+        .font-en { font-family: 'Noto Sans', sans-serif; }
+        .font-yusei { font-family: 'Yusei Magic', cursive; }
+        .font-zen { font-family: 'Zen Kurenaido', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        light: {
+                            background: '#F5F5F5',
+                            text: '#0C2C30',
+                            heading: '#50727B',
+                            accent: '#FF5733',
+                            subtle: '#D5E0DA',
+                        },
+                        dark: {
+                            background: '#1A1A2E',
+                            text: '#E8E8E8',
+                            heading: '#8C9C9C',
+                            accent: '#FFB86C',
+                            subtle: '#32425B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text transition-colors duration-300">
+
+    <div id="app" class="antialiased">
+        <nav class="sticky top-0 z-10 bg-light-background/80 dark:bg-dark-background/80 backdrop-blur-sm shadow-sm">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="font-en text-2xl font-bold text-light-heading dark:text-dark-heading">Nihongo Flow</span>
+                    </div>
+                    <div class="flex items-center">
+                        <button id="theme-toggle" type="button" class="p-2 rounded-md text-light-heading dark:text-dark-heading hover:bg-black/5 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-light-background dark:focus:ring-offset-dark-background focus:ring-light-accent dark:focus:ring-dark-accent">
+                            <svg id="theme-icon-light" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <svg id="theme-icon-dark" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            
+            <header class="text-center mb-16">
+                <h1 class="text-4xl md:text-6xl font-bold text-light-heading dark:text-dark-heading mb-4">الهوية البصرية لمشروعكم</h1>
+                <p class="text-xl max-w-3xl mx-auto">مزيج بين البساطة اليابانية والوضوح العربي، لخلق بيئة تعليمية هادئة وجذابة.</p>
+            </header>
+
+            <section id="colors" class="mb-16">
+                <h2 class="text-3xl font-bold text-center mb-8 text-light-heading dark:text-dark-heading">لوحات الألوان</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4 text-center">الوضع الفاتح (Light Mode)</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#F5F5F5]"></div><p class="mt-2 font-semibold">خلفية</p><p class="font-en text-sm opacity-70">#F5F5F5</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#0C2C30]"></div><p class="mt-2 font-semibold">نص أساسي</p><p class="font-en text-sm opacity-70">#0C2C30</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#50727B]"></div><p class="mt-2 font-semibold">عناوين</p><p class="font-en text-sm opacity-70">#50727B</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#FF5733]"></div><p class="mt-2 font-semibold">لون مميز</p><p class="font-en text-sm opacity-70">#FF5733</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#D5E0DA]"></div><p class="mt-2 font-semibold">لمسة ثقافية</p><p class="font-en text-sm opacity-70">#D5E0DA</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4 text-center">الوضع الداكن (Dark Mode)</h3>
+                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#1A1A2E]"></div><p class="mt-2 font-semibold">خلفية</p><p class="font-en text-sm opacity-70">#1A1A2E</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#E8E8E8]"></div><p class="mt-2 font-semibold">نص أساسي</p><p class="font-en text-sm opacity-70">#E8E8E8</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#8C9C9C]"></div><p class="mt-2 font-semibold">عناوين</p><p class="font-en text-sm opacity-70">#8C9C9C</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#FFB86C]"></div><p class="mt-2 font-semibold">لون مميز</p><p class="font-en text-sm opacity-70">#FFB86C</p></div>
+                            <div class="text-center"><div class="w-full h-24 rounded-lg shadow-md bg-[#32425B]"></div><p class="mt-2 font-semibold">لمسة ثقافية</p><p class="font-en text-sm opacity-70">#32425B</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="typography" class="mb-16">
+                <h2 class="text-3xl font-bold text-center mb-8 text-light-heading dark:text-dark-heading">الخطوط</h2>
+                <div class="bg-light-subtle dark:bg-dark-subtle p-8 rounded-lg">
+                    <h3 class="text-2xl font-bold mb-6 text-light-heading dark:text-dark-heading">الخطوط الأساسية</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-sm opacity-70 mb-1">اللغة العربية (Noto Naskh Arabic)</p>
+                            <h1 class="text-4xl font-bold text-light-heading dark:text-dark-heading">رحلة تعلم اللغة اليابانية</h1>
+                            <p class="mt-2 text-lg">هذا الخط مصمم ليكون واضحاً ومريحاً للعين، مما يجعله مثالياً للنصوص الطويلة والشروحات التعليمية.</p>
+                        </div>
+                        <div dir="ltr">
+                            <p class="text-sm opacity-70 mb-1 font-en">Japanese Language (Noto Sans JP)</p>
+                            <h1 class="text-4xl font-bold font-jp text-light-heading dark:text-dark-heading">日本語学習の旅</h1>
+                            <p class="mt-2 text-lg font-jp">明確で読みやすいように設計されており、あらゆるサイズのテキストに最適です。</p>
+                        </div>
+                         <div dir="ltr">
+                            <p class="text-sm opacity-70 mb-1 font-en">English Language (Noto Sans)</p>
+                            <h1 class="text-4xl font-bold font-en text-light-heading dark:text-dark-heading">A Journey to Learn Japanese</h1>
+                            <p class="mt-2 text-lg font-en">This font ensures a consistent and modern look across all platforms.</p>
+                        </div>
+                    </div>
+                    <hr class="my-8 border-light-heading/20 dark:border-dark-heading/20">
+                    <h3 class="text-2xl font-bold mb-6 text-light-heading dark:text-dark-heading">خطوط تمارين الكتابة</h3>
+                     <div class="flex flex-wrap gap-8">
+                        <div class="text-center">
+                            <p class="mb-2">للكانجي (Zen Kurenaido)</p>
+                            <p class="font-zen text-5xl text-light-heading dark:text-dark-heading">漢字</p>
+                        </div>
+                         <div class="text-center">
+                            <p class="mb-2">للهيراجانا والكاتاكانا (Yusei Magic)</p>
+                            <p class="font-yusei text-5xl text-light-heading dark:text-dark-heading">ひらがな カタカナ</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="components">
+                <h2 class="text-3xl font-bold text-center mb-8 text-light-heading dark:text-dark-heading">مكونات الواجهة</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+                    <div class="space-y-6">
+                         <h3 class="text-2xl font-bold text-light-heading dark:text-dark-heading">الأزرار</h3>
+                         <div class="flex flex-wrap gap-4 items-center">
+                            <button class="px-6 py-3 font-bold text-white bg-light-accent dark:bg-dark-accent rounded-lg shadow-md hover:opacity-90 transition-opacity">زر أساسي</button>
+                            <button class="px-6 py-3 font-bold text-light-accent dark:text-dark-accent border-2 border-light-accent dark:border-dark-accent rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 transition-colors">زر ثانوي</button>
+                         </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4 text-light-heading dark:text-dark-heading">مثال على بطاقة دورة</h3>
+                        <div class="bg-light-subtle dark:bg-dark-subtle rounded-xl shadow-lg overflow-hidden p-6 transform hover:scale-105 transition-transform duration-300">
+                           <h4 class="text-2xl font-bold text-light-heading dark:text-dark-heading mb-2">أساسيات الهيراجانا</h4>
+                           <p class="mb-4 opacity-80">تعلم معنا أولى خطواتك في اللغة اليابانية. في هذه الدورة ستتقن كتابة ونطق جميع حروف الهيراجانا.</p>
+                           <button class="w-full px-6 py-3 font-bold text-white bg-light-accent dark:bg-dark-accent rounded-lg shadow-md hover:opacity-90 transition-opacity">ابدأ التعلم الآن</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="text-center py-8 mt-12 border-t border-light-heading/10 dark:border-dark-heading/10">
+            <p class="font-en text-light-heading dark:text-dark-heading">&copy; 2025 Nihongo Flow</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const lightIcon = document.getElementById('theme-icon-light');
+        const darkIcon = document.getElementById('theme-icon-dark');
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                lightIcon.classList.remove('hidden');
+                darkIcon.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                lightIcon.classList.add('hidden');
+                darkIcon.classList.remove('hidden');
+            }
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const newTheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+
+    </script>
+</body>
+</html>
